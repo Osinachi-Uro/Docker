@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+
+  app:
+
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8080:80"
+    networks:
+      - laranet
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./logs:/var/log/apache2
+
+  db:
+    container_name: db
+    build:
+      context: .
+      dockerfile: dbDockerfile
+    restart: unless-stopped
+    tty: true
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 50s
+      retries: 3
+    networks:
+      - laranet
+    volumes:
+      - ./logs:/var/log/
+      - ./data:/var/lib/mysql
+
+#Docker Networks
+networks:
+  laranet:
+
